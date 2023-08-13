@@ -3,6 +3,7 @@ platform_temp = $(subst -, ,$(ARCH))
 GOOS = $(word 1, $(platform_temp))
 GOARCH = $(word 2, $(platform_temp))
 GOPROXY = https://proxy.golang.org
+BIN ?= goha
 
 export CI
 
@@ -11,7 +12,7 @@ arch:
 
 build: build-binary
 build-binary: prepare-build-dir
-	@GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o build/bin/$(GOOS)/$(GOARCH)/$(BIN) ./
+	@GOOS=$(GOOS) GOARCH=$(GOARCH) CGO_ENABLED=0 go build -o build/bin/$(GOOS)/$(GOARCH)/$(BIN) ./cli
 
 clean: clean-binary clean-build-dir
 clean-binary:

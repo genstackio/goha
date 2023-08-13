@@ -1,4 +1,4 @@
-package main
+package goha
 
 import (
 	"errors"

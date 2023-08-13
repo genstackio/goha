@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/genstackio/goha"
 	"os"
 )
 
@@ -16,7 +17,7 @@ func main() {
 	action := os.Args[4]
 	switch action {
 	case "list-organizations":
-		c := Client{}
+		c := goha.Client{}
 		c.Init(clientId, clientSecret, env)
 		p, err := c.GetMyOrganizations()
 		if err != nil {
@@ -31,9 +32,9 @@ func main() {
 			fmt.Println("Syntax: goha <clientId> <clientSecret> <env> list-organization-payments <organizationSlug>")
 			os.Exit(1)
 		}
-		c := Client{}
+		c := goha.Client{}
 		c.Init(clientId, clientSecret, env)
-		p, err := c.GetOrganizationPayments(os.Args[5], GetPaymentsOptions{})
+		p, err := c.GetOrganizationPayments(os.Args[5], goha.GetPaymentsOptions{})
 		if err != nil {
 			fmt.Println("ERROR: " + err.Error())
 			os.Exit(5)
@@ -42,7 +43,7 @@ func main() {
 			fmt.Println(v.Id, v.Amount, v.Date)
 		}
 	case "test-credentials":
-		ok, err := TestApiCredentials(clientId, clientSecret, env)
+		ok, err := goha.TestApiCredentials(clientId, clientSecret, env)
 
 		if !ok {
 			fmt.Println("NOK - Bad credentials:" + err.Error())
