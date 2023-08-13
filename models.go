@@ -1,4 +1,4 @@
-package goha
+package main
 
 type AccountParams struct {
 }

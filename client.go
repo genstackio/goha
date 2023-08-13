@@ -1,4 +1,4 @@
-package goha
+package main
 
 import (
 	"errors"
@@ -31,8 +31,10 @@ func (hac *Client) GetCurrentOrganization() (Organization, error) {
 }
 func (hac *Client) GetMyOrganizations() (OrganizationPage, error) {
 	o := OrganizationPage{}
-	err := hac.getDocument("/v5/users/me/organizations", &o.Items)
-	if err != nil {
+	var items []Organization
+	err := hac.getDocument("/v5/users/me/organizations", &items)
+	if err == nil {
+		o.Items = items
 		o.Count = len(o.Items)
 	}
 	return o, err
@@ -61,9 +63,9 @@ func (hac *Client) GetCompanyLegalStatuses() (CompanyLegalStatusPage, error) {
 	}
 	return o, err
 }
-func (hac *Client) GetCheckoutIntent(id string) (CheckoutIntent, error) {
+func (hac *Client) GetOrganizationCheckoutIntent(orgSlug string, id string) (CheckoutIntent, error) {
 	o := CheckoutIntent{}
-	err := hac.getDocument("/v5/organizations/{organizationSlug}/checkout-intents/"+id, &o)
+	err := hac.getDocument("/v5/organizations/"+orgSlug+"/checkout-intents/"+id, &o)
 	return o, err
 }
 func (hac *Client) GetOrderItem(id string, opts GetOrderItemOptions) (OrderItem, error) {
@@ -85,7 +87,7 @@ func (hac *Client) GetPayment(id string) (Payment, error) {
 	err := hac.getDocument("/v5/payments/"+id, &o)
 	return o, err
 }
-func (hac *Client) GetPayments(opts GetPaymentsOptions) (PaymentPage, error) {
+func (hac *Client) GetOrganizationPayments(orgSlug string, opts GetPaymentsOptions) (PaymentPage, error) {
 	o := PaymentPage{}
 	query := ""
 	infos := map[string]string{}
@@ -111,14 +113,14 @@ func (hac *Client) GetPayments(opts GetPaymentsOptions) (PaymentPage, error) {
 			}
 		}
 	}
-	err := hac.getDocument("/v5/organizations/{organizationSlug}/payments"+query, &o.Items)
+	err := hac.getDocument("/v5/organizations/"+orgSlug+"/payments"+query, &o.Items)
 	if err != nil {
 		o.Count = len(o.Items)
 	}
 	return o, err
 }
-func (hac *Client) CreateCheckoutIntent(params *CheckoutIntentParams) (CheckoutIntent, error) {
+func (hac *Client) CreateOrganizationCheckoutIntent(orgSlug string, params *CheckoutIntentParams) (CheckoutIntent, error) {
 	ci := CheckoutIntent{}
-	err := hac.createDocument("/v5/organizations/{organizationSlug}/checkout-intents", params, &ci)
+	err := hac.createDocument("/v5/organizations/"+orgSlug+"/checkout-intents", params, &ci)
 	return ci, err
 }

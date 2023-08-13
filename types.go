@@ -1,13 +1,11 @@
-package goha
+package main
 
 type Client struct {
-	clientId     string
-	clientSecret string
-	endpoint     string
-	env          string
-	identity     ClientIdentity
-	tokens       ClientTokens
-	options      ClientOptions
+	endpoint string
+	env      string
+	identity ClientIdentity
+	tokens   ClientTokens
+	options  ClientOptions
 }
 
 type ClientOptions struct {
@@ -18,8 +16,10 @@ type ClientIdentity struct {
 	Password string
 }
 type ClientTokens struct {
-	AccessToken  string
-	RefreshToken string
+	AccessToken  string `json:"access_token,omitempty"`
+	RefreshToken string `json:"refresh_token,omitempty"`
+	TokenType    string `json:"token_type,omitempty"`
+	ExpiresIn    int64  `json:"expires_in,omitempty"`
 }
 
 type FetchOptions struct {

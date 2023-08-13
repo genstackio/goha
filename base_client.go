@@ -1,10 +1,10 @@
-package goha
+package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"github.com/lestrrat-go/jwx/jwt"
+	"io"
 	"math"
 	"net/http"
 	"net/url"
@@ -13,8 +13,8 @@ import (
 )
 
 func (hac *Client) Init(clientId string, clientSecret string, env string) {
-	hac.clientId = clientId
-	hac.clientSecret = clientSecret
+	hac.identity.Username = clientId
+	hac.identity.Password = clientSecret
 	hac.env = env
 	hac.endpoint = "https://api.helloasso.com"
 	hac.options = ClientOptions{
@@ -62,7 +62,7 @@ func (hac *Client) createAuthTokensFromRefreshToken(clientId string, refreshToke
 			"refresh_token": refreshToken,
 			"grant_type":    "refresh_token",
 		},
-		ct,
+		&ct,
 	)
 	return ct, err
 }
@@ -78,7 +78,7 @@ func (hac *Client) createAuthTokensFromIdentity(identity ClientIdentity) (Client
 			"client_secret": identity.Password,
 			"grant_type":    "client_credentials",
 		},
-		ct,
+		&ct,
 	)
 	return ct, err
 }
@@ -136,19 +136,21 @@ func (hac *Client) http(method string, uri string, body interface{}, headers map
 	return err
 }
 func (hac *Client) fetch(url string, opts FetchOptions, data interface{}) (*http.Response, error) {
-	var bodyReader *bytes.Reader
-	if nil != opts.Body {
-		rawBody, err := json.Marshal(opts.Body)
+	/*
+		var bodyReader *bytes.Reader
+		if nil != opts.Body {
+			rawBody, err := json.Marshal(opts.Body)
 
-		if err != nil {
-			return nil, err
+			if err != nil {
+				return nil, err
+			}
+
+			bodyReader = bytes.NewReader(rawBody)
+
 		}
+	*/
 
-		bodyReader = bytes.NewReader(rawBody)
-
-	}
-
-	req, err := http.NewRequest(opts.Method, url, bodyReader)
+	req, err := http.NewRequest(opts.Method, url, nil)
 
 	if err != nil {
 		return nil, err
@@ -159,29 +161,36 @@ func (hac *Client) fetch(url string, opts FetchOptions, data interface{}) (*http
 	}
 	client := http.Client{}
 	if opts.Options.Timeout > 0 {
-		client.Timeout = time.Duration(opts.Options.Timeout * 1000000)
+		client.Timeout = time.Duration(opts.Options.Timeout * 1000000000)
 	}
 
 	res, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
+
+	if res.StatusCode < 200 || res.StatusCode >= 400 {
+		respBytes, _ := io.ReadAll(res.Body)
+		return res, errors.New("Bad response for server (statusCode: " + strconv.Itoa(res.StatusCode) + "): " + string(respBytes))
+	}
+
 	err = json.NewDecoder(res.Body).Decode(data)
 
 	return res, nil
 }
 func (hac *Client) postForm(uri string, vars map[string]string, data interface{}) error {
-	var vals url.Values
+	vals := url.Values{}
 	for k, v := range vars {
 		vals.Set(k, v)
 	}
-	res, err := http.PostForm(hac.endpoint+uri, vals)
+	u := hac.endpoint + uri
+	res, err := http.PostForm(u, vals)
 
 	if err != nil {
 		return err
 	}
 	if res.StatusCode < 200 || res.StatusCode >= 400 {
-		return errors.New(" bad response from server (statusCode: " + strconv.Itoa(res.StatusCode) + ")")
+		return errors.New(" bad response from server at " + u + " (statusCode: " + strconv.Itoa(res.StatusCode) + ")")
 	}
 
 	err = json.NewDecoder(res.Body).Decode(data)

@@ -1,6 +1,8 @@
-package goha
+package main
 
-import "github.com/lestrrat-go/jwx/jwt"
+import (
+	"github.com/lestrrat-go/jwx/jwt"
+)
 
 func decodeJwt(token string) (jwt.Token, error) {
 	t, err := jwt.Parse([]byte(token))
@@ -17,4 +19,16 @@ func mergeMaps(m1 map[string]string, m2 map[string]string) map[string]string {
 		merged[key] = value
 	}
 	return merged
+}
+
+func TestApiCredentials(clientId string, clientSecret string, env string) (bool, error) {
+	c := Client{}
+	c.Init(clientId, clientSecret, env)
+	_, err := c.GetMyOrganizations()
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
