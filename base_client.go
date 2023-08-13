@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"github.com/lestrrat-go/jwx/jwt"
@@ -136,21 +137,18 @@ func (hac *Client) http(method string, uri string, body interface{}, headers map
 	return err
 }
 func (hac *Client) fetch(url string, opts FetchOptions, data interface{}) (*http.Response, error) {
-	/*
-		var bodyReader *bytes.Reader
-		if nil != opts.Body {
-			rawBody, err := json.Marshal(opts.Body)
+	var bodyReader io.Reader = nil
+	if nil != opts.Body {
+		rawBody, err := json.Marshal(opts.Body)
 
-			if err != nil {
-				return nil, err
-			}
-
-			bodyReader = bytes.NewReader(rawBody)
-
+		if err != nil {
+			return nil, err
 		}
-	*/
 
-	req, err := http.NewRequest(opts.Method, url, nil)
+		bodyReader = bytes.NewReader(rawBody)
+	}
+
+	req, err := http.NewRequest(opts.Method, url, bodyReader)
 
 	if err != nil {
 		return nil, err
