@@ -1,4 +1,4 @@
-ARCH ?= linux-amd64
+ARCH ?= darwin-arm64
 platform_temp = $(subst -, ,$(ARCH))
 GOOS = $(word 1, $(platform_temp))
 GOARCH = $(word 2, $(platform_temp))

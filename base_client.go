@@ -13,11 +13,20 @@ import (
 	"time"
 )
 
+var envs = map[string]string{
+	"production": "https://api.helloasso.com",
+	"sandbox":    "https://api.helloasso-sandbox.com",
+}
+
 func (hac *Client) Init(clientId string, clientSecret string, env string) {
 	hac.identity.Username = clientId
 	hac.identity.Password = clientSecret
 	hac.env = env
-	hac.endpoint = "https://api.helloasso.com"
+	endpoint, ok := envs[env]
+	if !ok {
+		endpoint = envs["production"]
+	}
+	hac.endpoint = endpoint
 	hac.options = ClientOptions{
 		MinExpirationDelay: 1,
 	}
