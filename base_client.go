@@ -18,9 +18,27 @@ var envs = map[string]string{
 	"sandbox":    "https://api.helloasso-sandbox.com",
 }
 
-func (hac *Client) Init(clientId string, clientSecret string, env string) {
+func (hac *Client) Init(clientIdOrAccessToken string, clientKeyOrRefreshToken string, env string) {
+	if len(clientIdOrAccessToken) > 450 || len(clientKeyOrRefreshToken) > 450 {
+		hac.InitFromTokens(clientIdOrAccessToken, clientKeyOrRefreshToken, env)
+	} else {
+		hac.InitFromApiKey(clientIdOrAccessToken, clientKeyOrRefreshToken, env)
+	}
+}
+
+func (hac *Client) InitFromApiKey(clientId string, clientSecret string, env string) {
+	hac.InitCommon(env)
 	hac.identity.Username = clientId
 	hac.identity.Password = clientSecret
+}
+
+func (hac *Client) InitFromTokens(accessToken string, refreshToken string, env string) {
+	hac.InitCommon(env)
+	hac.tokens.AccessToken = accessToken
+	hac.tokens.RefreshToken = refreshToken
+}
+
+func (hac *Client) InitCommon(env string) {
 	hac.env = env
 	endpoint, ok := envs[env]
 	if !ok {
@@ -33,7 +51,7 @@ func (hac *Client) Init(clientId string, clientSecret string, env string) {
 }
 
 func (hac *Client) isIdentified() bool {
-	return len(hac.identity.Username) > 0
+	return len(hac.identity.Username) > 0 || len(hac.tokens.AccessToken) > 0 || len(hac.tokens.RefreshToken) > 0
 }
 
 func (hac *Client) decodeToken(token string) (jwt.Token, error) {
