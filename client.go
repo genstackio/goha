@@ -5,15 +5,22 @@ import (
 	"strconv"
 )
 
-func (hac *Client) CreateAccount(params *AccountParams) (Account, error) {
+func (hac *Client) CreateAccount(_ *AccountParams) (Account, error) {
 	return Account{
 		Id: "",
 	}, nil
 }
-func (hac *Client) CreateAccountLink(params *AccountLinkParams) (AccountLink, error) {
+func (hac *Client) CreateAccountLink(_ *AccountLinkParams) (AccountLink, error) {
 	return AccountLink{
 		RedirectUrl: "",
 	}, nil
+}
+func (hac *Client) RefreshTokens() (ClientTokens, error) {
+	err := hac.refreshAccessToken()
+	if err != nil {
+		return ClientTokens{}, err
+	}
+	return hac.tokens, nil
 }
 func (hac *Client) GetCurrentOrganization() (Organization, error) {
 	o := Organization{}
