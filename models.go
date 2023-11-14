@@ -27,9 +27,9 @@ type CheckoutIntentParams struct {
 	ItemName          string                     `json:"itemName,omitempty"`
 	ContainsDonation  bool                       `json:"containsDonation,omitempty"`
 	Metadata          Metadata                   `json:"metadata,omitempty"`
-	ReturnURL         string                     `json:"returnURL,omitempty"`
-	BackURL           string                     `json:"backURL,omitempty"`
-	ErrorURL          string                     `json:"errorURL,omitempty"`
+	ReturnUrl         string                     `json:"returnUrl,omitempty"`
+	BackUrl           string                     `json:"backUrl,omitempty"`
+	ErrorUrl          string                     `json:"errorUrl,omitempty"`
 	TrackingParameter string                     `json:"trackingParameter,omitempty"`
 	Terms             *CheckoutIntentParamsTerms `json:"terms,omitempty"`
 	Payer             *CheckoutIntentParamsPayer `json:"payer,omitempty"`
