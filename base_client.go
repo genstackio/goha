@@ -126,6 +126,25 @@ func (hac *Client) refreshAccessToken() error {
 	hac.tokens = tokens
 	return nil
 }
+func (hac *Client) refreshAccessTokenIfNeeded() (bool, error) {
+	if !hac.isTokenExpired(hac.tokens.AccessToken) {
+		return false, nil
+	}
+	if hac.isTokenExpired(hac.tokens.RefreshToken) {
+		tokens, err := hac.createAuthTokensFromIdentity(hac.identity)
+		if err != nil {
+			return false, err
+		}
+		hac.tokens = tokens
+		return true, nil
+	}
+	tokens, err := hac.createAuthTokensFromRefreshToken(hac.identity.Username, hac.tokens.RefreshToken)
+	if err != nil {
+		return false, err
+	}
+	hac.tokens = tokens
+	return true, nil
+}
 func (hac *Client) prepareAuthTokens() error {
 	if !hac.isIdentified() {
 		return nil

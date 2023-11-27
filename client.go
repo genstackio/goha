@@ -22,6 +22,21 @@ func (hac *Client) RefreshTokens() (ClientTokens, error) {
 	}
 	return hac.tokens, nil
 }
+func (hac *Client) RefreshTokensIfNeed() (*ClientTokens, error) {
+	refreshed, err := hac.refreshAccessTokenIfNeeded()
+	if err != nil {
+		return nil, err
+	}
+	if refreshed {
+		return &ClientTokens{
+			AccessToken:  hac.tokens.AccessToken,
+			RefreshToken: hac.tokens.RefreshToken,
+			TokenType:    hac.tokens.TokenType,
+			ExpiresIn:    hac.tokens.ExpiresIn,
+		}, nil
+	}
+	return nil, nil
+}
 func (hac *Client) GetCurrentOrganization() (Organization, error) {
 	o := Organization{}
 	page, err := hac.GetMyOrganizations()
