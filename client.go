@@ -22,7 +22,7 @@ func (hac *Client) RefreshTokens() (ClientTokens, error) {
 	}
 	return hac.tokens, nil
 }
-func (hac *Client) RefreshTokensIfNeed() (*ClientTokens, error) {
+func (hac *Client) RefreshTokensIfNeeded() (*ClientTokens, error) {
 	refreshed, err := hac.refreshAccessTokenIfNeeded()
 	if err != nil {
 		return nil, err
