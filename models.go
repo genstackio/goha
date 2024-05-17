@@ -25,7 +25,7 @@ type CheckoutIntentParams struct {
 	TotalAmount       int64                      `json:"totalAmount,omitempty"`
 	InitialAmount     int64                      `json:"initialAmount,omitempty"`
 	ItemName          string                     `json:"itemName,omitempty"`
-	ContainsDonation  bool                       `json:"containsDonation,omitempty"`
+	ContainsDonation  bool                       `json:"containsDonation"` // do not set 'omitempty'! non-compatible with HelloAsso api if value = false
 	Metadata          Metadata                   `json:"metadata,omitempty"`
 	ReturnUrl         string                     `json:"returnUrl,omitempty"`
 	BackUrl           string                     `json:"backUrl,omitempty"`
