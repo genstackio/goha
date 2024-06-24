@@ -8,7 +8,7 @@ type AccessDeniedError struct {
 }
 
 func (err AccessDeniedError) Error() string {
-	return "Access denied: " + err.Description + "(at " + err.Url + ")"
+	return "Access denied: " + err.Description + " (at " + err.Url + ")"
 }
 
 func (err AccessDeniedError) JsonResponse() JsonErrorResponse {
