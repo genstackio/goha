@@ -234,7 +234,8 @@ func (hac *Client) postForm(uri string, vars map[string]string, data interface{}
 		return err
 	}
 	if res.StatusCode < 200 || res.StatusCode >= 400 {
-		return errors.New(" bad response from server at " + u + " (statusCode: " + strconv.Itoa(res.StatusCode) + ")")
+		respBytes, _ := io.ReadAll(res.Body)
+		return errors.New(" bad response from server at " + u + " (statusCode: " + strconv.Itoa(res.StatusCode) + "): " + string(respBytes))
 	}
 
 	err = json.NewDecoder(res.Body).Decode(data)
