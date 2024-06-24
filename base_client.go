@@ -3,8 +3,8 @@ package goha
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
-	"github.com/genstackio/goha/common"
+	base_errors "errors"
+	"github.com/genstackio/goha/errors"
 	"github.com/lestrrat-go/jwx/jwt"
 	"io"
 	"math"
@@ -82,7 +82,7 @@ func (hac *Client) isAccessTokenValid() bool {
 func (hac *Client) createAuthTokensFromRefreshToken(clientId string, refreshToken string) (ClientTokens, error) {
 	var ct ClientTokens
 	if len(refreshToken) <= 0 {
-		return ct, errors.New("empty refresh token, please reset tokens")
+		return ct, base_errors.New("empty refresh token, please reset tokens")
 	}
 	err := hac.postForm(
 		"/oauth2/token",
@@ -98,7 +98,7 @@ func (hac *Client) createAuthTokensFromRefreshToken(clientId string, refreshToke
 func (hac *Client) createAuthTokensFromIdentity(identity ClientIdentity) (ClientTokens, error) {
 	var ct ClientTokens
 	if len(identity.Username) <= 0 {
-		return ct, errors.New("empty identity, please set identity first")
+		return ct, base_errors.New("empty identity, please set identity first")
 	}
 	err := hac.postForm(
 		"/oauth2/token",
@@ -222,11 +222,11 @@ func (hac *Client) fetch(url string, opts FetchOptions, data interface{}) (*http
 	return res, nil
 }
 func extractAccessDeniedError(err ErrorData, _ []byte, infos map[string]string) error {
-	return common.AccessDeniedError{Description: err.ErrorDescription, Url: infos["url"]}
+	return errors.AccessDeniedError{Description: err.ErrorDescription, Url: infos["url"]}
 }
 func extractGenericError(err ErrorData, _ []byte, infos map[string]string) error {
 	statusCode, _ := strconv.Atoi(infos["statusCode"])
-	return common.GenericError{Description: err.ErrorDescription, Url: infos["url"], StatusCode: statusCode}
+	return errors.GenericError{Description: err.ErrorDescription, Url: infos["url"], StatusCode: statusCode}
 }
 func extractErrorFromResponseIfNeeded(res *http.Response, err error, infos map[string]string) error {
 	if err != nil {
