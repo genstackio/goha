@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"github.com/genstackio/goha/common"
 	"github.com/lestrrat-go/jwx/jwt"
 	"io"
 	"math"
@@ -209,18 +210,48 @@ func (hac *Client) fetch(url string, opts FetchOptions, data interface{}) (*http
 	}
 
 	res, err := client.Do(req)
+
+	err = extractErrorFromResponseIfNeeded(res, err, map[string]string{"url": url, "statusCode": strconv.Itoa(res.StatusCode)})
+
 	if err != nil {
 		return nil, err
-	}
-
-	if res.StatusCode < 200 || res.StatusCode >= 400 {
-		respBytes, _ := io.ReadAll(res.Body)
-		return res, errors.New("Bad response for server (statusCode: " + strconv.Itoa(res.StatusCode) + "): " + string(respBytes))
 	}
 
 	err = json.NewDecoder(res.Body).Decode(data)
 
 	return res, nil
+}
+func extractAccessDeniedError(err ErrorData, _ []byte, infos map[string]string) error {
+	return common.AccessDeniedError{Description: err.ErrorDescription, Url: infos["url"]}
+}
+func extractGenericError(err ErrorData, _ []byte, infos map[string]string) error {
+	statusCode, _ := strconv.Atoi(infos["statusCode"])
+	return common.GenericError{Description: err.ErrorDescription, Url: infos["url"], StatusCode: statusCode}
+}
+func extractErrorFromResponseIfNeeded(res *http.Response, err error, infos map[string]string) error {
+	if err != nil {
+		return err
+	}
+	if res.StatusCode >= 200 && res.StatusCode < 400 {
+		return nil
+	}
+
+	respBytes, _ := io.ReadAll(res.Body)
+
+	errorData := ErrorData{}
+
+	err2 := json.Unmarshal(respBytes, &errorData)
+
+	if nil != err2 {
+		return err2
+	}
+
+	switch errorData.Error {
+	case "access_denied":
+		return extractAccessDeniedError(errorData, respBytes, infos)
+	default:
+		return extractGenericError(errorData, respBytes, infos)
+	}
 }
 func (hac *Client) postForm(uri string, vars map[string]string, data interface{}) error {
 	vals := url.Values{}
@@ -230,17 +261,13 @@ func (hac *Client) postForm(uri string, vars map[string]string, data interface{}
 	u := hac.endpoint + uri
 	res, err := http.PostForm(u, vals)
 
+	err = extractErrorFromResponseIfNeeded(res, err, map[string]string{"url": u, "statusCode": strconv.Itoa(res.StatusCode)})
+
 	if err != nil {
 		return err
 	}
-	if res.StatusCode < 200 || res.StatusCode >= 400 {
-		respBytes, _ := io.ReadAll(res.Body)
-		return errors.New(" bad response from server at " + u + " (statusCode: " + strconv.Itoa(res.StatusCode) + "): " + string(respBytes))
-	}
 
-	err = json.NewDecoder(res.Body).Decode(data)
-
-	return err
+	return json.NewDecoder(res.Body).Decode(data)
 }
 func (hac *Client) createDocument(uri string, body interface{}, data interface{}) error {
 	return hac.request(uri, http.MethodPost, body, map[string]string{"Content-Type": "application/json;charset=utf-8"}, data)
