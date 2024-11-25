@@ -7,6 +7,7 @@ import (
 	"github.com/genstackio/goha/errors"
 	"github.com/lestrrat-go/jwx/jwt"
 	"io"
+	"log"
 	"math"
 	"net/http"
 	"net/url"
@@ -250,6 +251,7 @@ func extractErrorFromResponseIfNeeded(res *http.Response, err error, infos map[s
 	case "access_denied":
 		return extractAccessDeniedError(errorData, respBytes, infos)
 	default:
+		log.Println("HelloAsso API error response:", string(respBytes))
 		return extractGenericError(errorData, respBytes, infos)
 	}
 }
