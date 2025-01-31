@@ -212,10 +212,18 @@ func (hac *Client) fetch(url string, opts FetchOptions, data interface{}) (*http
 
 	res, err := client.Do(req)
 
-	err = extractErrorFromResponseIfNeeded(res, err, map[string]string{"url": url, "statusCode": strconv.Itoa(res.StatusCode)})
+	statusCode := 0
+	if nil != res {
+		statusCode = res.StatusCode
+	}
+	err = extractErrorFromResponseIfNeeded(res, err, map[string]string{"url": url, "statusCode": strconv.Itoa(statusCode)})
 
 	if err != nil {
 		return nil, err
+	}
+
+	if nil == res {
+		return nil, base_errors.New("no response body")
 	}
 
 	err = json.NewDecoder(res.Body).Decode(data)
@@ -241,11 +249,8 @@ func extractErrorFromResponseIfNeeded(res *http.Response, err error, infos map[s
 
 	errorData := ErrorData{}
 
-	err2 := json.Unmarshal(respBytes, &errorData)
-
-	if nil != err2 {
-		return err2
-	}
+	// we try to fetch response content as json, if failing, ignore the content
+	_ = json.Unmarshal(respBytes, &errorData)
 
 	switch errorData.Error {
 	case "access_denied":
