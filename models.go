@@ -288,6 +288,33 @@ type Payment struct {
 	State             string        `json:"state"`
 	Meta              Metadata      `json:"meta"`
 }
+type PartnerInfos struct {
+	Name          string `json:"name"`
+	DisplayName   string `json:"displayName"`
+	Description   string `json:"description"`
+	Url           string `json:"url"`
+	Logo          string `json:"logo"`
+	LogoRectangle string `json:"logoRectangle"`
+	ApiClient     struct {
+		Id          string   `json:"id"`
+		Secret      string   `json:"secret"`
+		PartnerName string   `json:"partnerName"`
+		Privileges  []string `json:"privileges"`
+		Domain      string   `json:"domain"`
+	} `json:"apiClient"`
+	UrlNotificationList []struct {
+		Url                 string `json:"url"`
+		ApiNotificationType string `json:"apiNotificationType"`
+		SignatureKey        string `json:"signatureKey"`
+	} `json:"urlNotificationList"`
+	PartnerStatistics struct {
+		LinkedOrganizationsCount               int `json:"linkedOrganizationsCount"`
+		LinkedOrganizationsCollectedAmount     int `json:"linkedOrganizationsCollectedAmount"`
+		CheckoutCollectedAmount                int `json:"checkoutCollectedAmount"`
+		OrganizationsUsingCheckout             int `json:"organizationsUsingCheckout"`
+		AvailableOrganizationsAccessTokenCount int `json:"availableOrganizationsAccessTokenCount"`
+	} `json:"partnerStatistics"`
+}
 type OrderItem struct {
 	Order           OrderItemOrder         `json:"order"`
 	Payer           OrderItemPayer         `json:"payer"`
@@ -354,4 +381,13 @@ type CompanyLegalStatusPage struct {
 	Count  int                  `json:"count,omitempty"`
 	Cursor string               `json:"cursor,omitempty"`
 	Items  []CompanyLegalStatus `json:"items,omitempty"`
+}
+type ApiUrlNotification struct {
+	Url                 string `json:"url"`
+	ApiNotificationType string `json:"apiNotificationType"`
+	SignatureKey        string `json:"signatureKey"`
+}
+type PostApiUrlNotificationBody struct {
+	Url              string `json:"url"`
+	NotificationType string `json:"notificationType"`
 }

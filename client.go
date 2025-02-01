@@ -109,6 +109,19 @@ func (hac *Client) GetPayment(id string) (Payment, error) {
 	err := hac.getDocument("/v5/payments/"+id, &o)
 	return o, err
 }
+func (hac *Client) GetPartnerInfos() (PartnerInfos, error) {
+	o := PartnerInfos{}
+	err := hac.getDocument("/v5/partners/me", &o)
+	return o, err
+}
+func (hac *Client) UpdatePartnerNotificationUrl(url string) (ApiUrlNotification, error) {
+	o := ApiUrlNotification{}
+	params := PostApiUrlNotificationBody{
+		Url: url,
+	}
+	err := hac.updateDocument("/v5/partners/me/api-notifications", &params, &o)
+	return o, err
+}
 func (hac *Client) GetOrganizationPayments(orgSlug string, opts GetPaymentsOptions) (PaymentPage, error) {
 	o := PaymentPage{}
 	query := ""

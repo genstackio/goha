@@ -10,4 +10,6 @@ var Commands = map[string]command{
 	"test-refresh-token":                TestRefreshTokenCommand,
 	"test-tokens":                       TestTokensCommand,
 	"test-tokens-and-organization-slug": TestTokensAndOrganizationSlugCommand,
+	"get-partner-infos":                 GetPartnerInfos,
+	"update-partner-notification-url":   UpdatePartnerNotificationUrl,
 }
