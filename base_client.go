@@ -3,11 +3,9 @@ package goha
 import (
 	"bytes"
 	"encoding/json"
-	base_errors "errors"
-	"github.com/genstackio/goha/errors"
+	baseerrors "errors"
 	"github.com/lestrrat-go/jwx/jwt"
 	"io"
-	"log"
 	"math"
 	"net/http"
 	"net/url"
@@ -83,7 +81,7 @@ func (hac *Client) isAccessTokenValid() bool {
 func (hac *Client) createAuthTokensFromRefreshToken(clientId string, refreshToken string) (ClientTokens, error) {
 	var ct ClientTokens
 	if len(refreshToken) <= 0 {
-		return ct, base_errors.New("empty refresh token, please reset tokens")
+		return ct, baseerrors.New("empty refresh token, please reset tokens")
 	}
 	err := hac.postForm(
 		"/oauth2/token",
@@ -99,7 +97,7 @@ func (hac *Client) createAuthTokensFromRefreshToken(clientId string, refreshToke
 func (hac *Client) createAuthTokensFromIdentity(identity ClientIdentity) (ClientTokens, error) {
 	var ct ClientTokens
 	if len(identity.Username) <= 0 {
-		return ct, base_errors.New("empty identity, please set identity first")
+		return ct, baseerrors.New("empty identity, please set identity first")
 	}
 	err := hac.postForm(
 		"/oauth2/token",
@@ -223,42 +221,12 @@ func (hac *Client) fetch(url string, opts FetchOptions, data interface{}) (*http
 	}
 
 	if nil == res {
-		return nil, base_errors.New("no response body")
+		return nil, baseerrors.New("no response body")
 	}
 
 	err = json.NewDecoder(res.Body).Decode(data)
 
 	return res, nil
-}
-func extractAccessDeniedError(err ErrorData, _ []byte, infos map[string]string) error {
-	return errors.AccessDeniedError{Description: err.ErrorDescription, Url: infos["url"]}
-}
-func extractGenericError(err ErrorData, _ []byte, infos map[string]string) error {
-	statusCode, _ := strconv.Atoi(infos["statusCode"])
-	return errors.GenericError{Description: err.ErrorDescription, Url: infos["url"], StatusCode: statusCode}
-}
-func extractErrorFromResponseIfNeeded(res *http.Response, err error, infos map[string]string) error {
-	if err != nil {
-		return err
-	}
-	if res.StatusCode >= 200 && res.StatusCode < 400 {
-		return nil
-	}
-
-	respBytes, _ := io.ReadAll(res.Body)
-
-	errorData := ErrorData{}
-
-	// we try to fetch response content as json, if failing, ignore the content
-	_ = json.Unmarshal(respBytes, &errorData)
-
-	switch errorData.Error {
-	case "access_denied":
-		return extractAccessDeniedError(errorData, respBytes, infos)
-	default:
-		log.Println("HelloAsso API error response:", string(respBytes))
-		return extractGenericError(errorData, respBytes, infos)
-	}
 }
 func (hac *Client) postForm(uri string, vars map[string]string, data interface{}) error {
 	vals := url.Values{}
@@ -268,12 +236,19 @@ func (hac *Client) postForm(uri string, vars map[string]string, data interface{}
 	u := hac.endpoint + uri
 	res, err := http.PostForm(u, vals)
 
-	err = extractErrorFromResponseIfNeeded(res, err, map[string]string{"url": u, "statusCode": strconv.Itoa(res.StatusCode)})
+	statusCode := "0"
+	if nil != res {
+		statusCode = strconv.Itoa(res.StatusCode)
+	}
+	err = extractErrorFromResponseIfNeeded(res, err, map[string]string{"url": u, "statusCode": statusCode})
 
 	if err != nil {
 		return err
 	}
 
+	if nil == res {
+		return nil
+	}
 	return json.NewDecoder(res.Body).Decode(data)
 }
 func (hac *Client) createDocument(uri string, body interface{}, data interface{}) error {
